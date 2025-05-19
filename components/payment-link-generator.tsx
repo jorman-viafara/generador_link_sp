@@ -186,6 +186,61 @@ export default function PaymentLinkGenerator() {
   }
 
 
+  const copyToClipboardNuevo = (text: string) => {
+    try {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+
+      // Evita que el usuario vea el textarea
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+
+      document.body.appendChild(textarea);
+      textarea.select();
+
+      const success = document.execCommand("copy");
+      document.body.removeChild(textarea);
+
+      if (success) {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } else {
+        console.warn("No se pudo copiar el texto.");
+      }
+    } catch (err) {
+      console.error("Error al copiar al portapapeles:", err);
+    }
+  };
+
+
+
+  const copyToClipboardNuevo2 = (text: string) => {
+    try {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+
+      // Evita que el usuario vea el textarea
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+
+      document.body.appendChild(textarea);
+      textarea.select();
+
+      const success = document.execCommand("copy");
+      document.body.removeChild(textarea);
+
+      if (success) {
+        setCopiedEid(true);
+        setTimeout(() => setCopiedEid(false), 2000);
+      } else {
+        console.warn("No se pudo copiar el texto.");
+      }
+    } catch (err) {
+      console.error("Error al copiar al portapapeles:", err);
+    }
+  };
+
+
 
 
   const formatFechaHoraColombiana = (fechaPersonalizada: string): string => {
@@ -516,7 +571,7 @@ export default function PaymentLinkGenerator() {
                     variant="ghost"
                     size="sm"
                     className="ml-2 text-gray-500 hover:text-primary hover:bg-blue-50 transition-colors"
-                    onClick={() => copyToClipboard(response.link)}
+                    onClick={() => copyToClipboardNuevo(response.link)}
                   >
                     {copied ? <CheckCircle2 className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                   </Button>
@@ -537,7 +592,7 @@ export default function PaymentLinkGenerator() {
                     variant="ghost"
                     size="sm"
                     className="ml-2 text-gray-500 hover:text-primary hover:bg-blue-50 transition-colors"
-                    onClick={() => copyToClipboard2(response.cusId)}
+                    onClick={() => copyToClipboardNuevo2(response.cusId)}
                   >
                     {copiedEid ? <CheckCircle2 className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                   </Button>
