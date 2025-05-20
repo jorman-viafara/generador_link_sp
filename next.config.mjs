@@ -12,6 +12,7 @@ const nextConfig = {
 
   basePath: '/generador-links/superpay',
   assetPrefix: '/generador-links/superpay',
+  trailingSlash: true,
 }
 
 export default nextConfig;
