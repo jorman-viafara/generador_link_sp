@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "main": "main.js",
+  "homepage": "/generador-links/superpay",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
