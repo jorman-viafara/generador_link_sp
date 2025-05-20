@@ -9,6 +9,9 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+
+  basePath: '/generador-links/superpay',
+  assetPrefix: '/generador-links/superpay',
 }
 
-export default nextConfig
+export default nextConfig;
