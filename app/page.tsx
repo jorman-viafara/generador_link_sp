@@ -32,7 +32,7 @@ export default function Home() {
         <div className="mt-12 text-center">
           <div className="flex flex-col items-center space-y-4">
             <Image
-              src="/images/bluelink_bpo_logo.png"
+              src={`${publicRuntimeConfig.basePath}/images/bluelink_bpo_logo.png`}
               alt="Bluelink BPO"
               width={150}
               height={55}
