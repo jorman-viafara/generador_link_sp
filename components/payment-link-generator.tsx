@@ -12,6 +12,7 @@ import { Loader2, Copy, CheckCircle2 } from "lucide-react"
 import Image from "next/image"
 import Swal from 'sweetalert2';
 import ReactDOMServer from 'react-dom/server';
+import getConfig from 'next/config';
 
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -52,6 +53,7 @@ export default function PaymentLinkGenerator() {
   const [amountFormatted, setAmountFormatted] = useState("")
   const [amountRaw, setAmountRaw] = useState("")
   const [isFocused, setIsFocused] = useState(false)
+  const { publicRuntimeConfig } = getConfig();
 
   // Añadir este useEffect para validar el formulario
   useEffect(() => {
@@ -649,7 +651,7 @@ export default function PaymentLinkGenerator() {
             {/* Marca de agua en la parte inferior del resultado con logo */}
             <div className="mt-6 flex justify-between items-center">
               <Image
-                src="/images/bluelink_bpo_logo.png"
+                src={`${publicRuntimeConfig.basePath}/images/bluelink_bpo_logo.png`}
                 alt="Bluelink BPO"
                 width={100}
                 height={36}
