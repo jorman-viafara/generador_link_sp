@@ -1,15 +1,18 @@
 import PaymentLinkGenerator from "@/components/payment-link-generator"
 import TransactionStatus from "@/components/transaction-status"
 import Image from "next/image"
+import getConfig from 'next/config';
 
 export default function Home() {
+  const { basePath } = getConfig().publicRuntimeConfig || { basePath: '' };
+  const { publicRuntimeConfig } = getConfig();
   return (
     <main className="min-h-screen bg-gradient-to-br from-white to-blue-50 py-12 px-4 sm:px-6 lg:px-8 relative">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Logo y título */}
         <div className="text-center animate-fade-in">
           <div className="flex justify-center mb-4">
-            <Image src="/images/bluelink_bpo_logo.png" alt="Bluelink BPO" width={220} height={80} className="h-auto" />
+            <Image src={`${publicRuntimeConfig.basePath}/images/bluelink_bpo_logo.png`} alt="Bluelink BPO" width={220} height={80} className="h-auto" />
           </div>
           <p className="text-gray-600 max-w-2xl mx-auto">
             Genera enlaces de pago SuperPay y consulta el estado de las transacciones de forma rápida y segura
