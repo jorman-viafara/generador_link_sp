@@ -13,6 +13,11 @@ const nextConfig = {
   basePath: '/generador-links/superpay',
   assetPrefix: '/generador-links/superpay',
   trailingSlash: true,
+
+
+  publicRuntimeConfig: {
+    basePath: '/generador-links/superpay',
+  },
 }
 
 export default nextConfig;
