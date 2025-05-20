@@ -21,7 +21,7 @@ export default function Home() {
 
         <div className="grid gap-8 md:grid-cols-1">
           <div className="animate-slide-up">
-            <PaymentLinkGenerator />
+          <PaymentLinkGenerator linkImage={`${publicRuntimeConfig.basePath}/images/bluelink_bpo_logo.png`} />
           </div>
           <div className="animate-slide-up" style={{ animationDelay: "0.2s" }}>
            {/*<TransactionStatus />*/}
