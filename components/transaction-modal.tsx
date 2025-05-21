@@ -180,10 +180,16 @@ export default function TransactionModal({ isOpen, onClose, data, onUpdate, isUp
                   <div className="p-3 bg-white border border-gray-100 rounded-md">{data.address}</div>
                 </div>
 
-                <div>
-                  <div className="text-sm text-gray-500 mb-1">Fecha de pago</div>
-                  <div className="p-3 bg-white border border-gray-100 rounded-md">{data.paymentDate}</div>
-                </div>
+                {data.status === "Aprobada" && (
+                  <div>
+                    <div className="text-sm text-gray-500 mb-1">Fecha de pago</div>
+                    <div className="p-3 bg-white border border-gray-100 rounded-md">
+                      {data.paymentDate}
+                    </div>
+                  </div>
+                )}
+
+
 
                 <div>
                   <div className="text-sm text-gray-500 mb-1">Método de pago</div>
@@ -214,7 +220,7 @@ export default function TransactionModal({ isOpen, onClose, data, onUpdate, isUp
               </div>
 
               <div className="mt-6 flex justify-end space-x-3">
-                <Button
+                {/*<Button
                   className="relative overflow-hidden text-white shadow-lg"
                   onClick={onUpdate}
                   disabled={isUpdating}
@@ -233,7 +239,7 @@ export default function TransactionModal({ isOpen, onClose, data, onUpdate, isUp
                     )}
                   </span>
                   <span className="absolute inset-0 rgb-button-vibrant"></span>
-                </Button>
+                </Button>*/}
                 <Button className="relative overflow-hidden text-white shadow-lg" onClick={onClose}>
                   <span className="relative z-10">Cerrar</span>
                   <span className="absolute inset-0 rgb-button-vibrant"></span>

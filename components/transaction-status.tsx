@@ -119,9 +119,9 @@ export default function TransactionStatus({ linkImage }: TransactionStatusProps)
 
       const formattedData: TransactionStatusResponse = {
         cusId: externalId,
-        status: statusMap[trxData.trxStatus] || "Desconocido",
+        status: statusMap[trxData.trxStatus],
         amount: `S/ ${parseFloat(trxData.authAmount || "0").toFixed(2)}`,
-        paymentDate: new Date(trxData.dtResponse).toLocaleString(),
+        paymentDate: trxData.dtRequest,
         customerName: extraData.fullName,
         customerLastName: "", // podrías separar aquí si quieres
         customerEmail: extraData.email,
@@ -146,11 +146,12 @@ export default function TransactionStatus({ linkImage }: TransactionStatusProps)
     e.preventDefault();
     setLoading(true);
     setError("");
+    setIsModalOpen(false); // Asegurarse de que el modal esté cerrado antes de empezar
 
     try {
       const responseData = await fetchTransactionStatus(cusId); // usa el externalId ingresado
       setResponse(responseData); // este objeto lo usará el modal
-      setIsModalOpen(true);
+      setIsModalOpen(true); // Solo se abre el modal si todo fue exitoso
     } catch (error) {
       console.error("Error al consultar estado:", error);
       setError(error instanceof Error ? error.message : "Error al consultar estado");
@@ -159,6 +160,7 @@ export default function TransactionStatus({ linkImage }: TransactionStatusProps)
       setLoading(false);
     }
   };
+
 
 
   const handleUpdateStatus = async () => {
