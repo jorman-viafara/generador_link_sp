@@ -30,6 +30,8 @@ interface PaymentLinkResponse {
   expirationDate: string
   paymentMethod: string
   plaque: string
+  ciudad: string
+  direccion: string
 }
 
 interface PaymentLinkGeneratorProps {
@@ -46,6 +48,7 @@ export default function PaymentLinkGenerator({ linkImage }: PaymentLinkGenerator
   const [customerAddress, setCustomerAddress] = useState("")
   const [phone, setPhone] = useState("")
   const [plaque, setPlaque] = useState("")
+  const [ciudad, setCiudad] = useState("")
 
   const [loading, setLoading] = useState(false)
   const [response, setResponse] = useState<PaymentLinkResponse | null>(null)
@@ -59,9 +62,9 @@ export default function PaymentLinkGenerator({ linkImage }: PaymentLinkGenerator
 
   // Añadir este useEffect para validar el formulario
   useEffect(() => {
-    const allFieldsFilled = [fullName, email, amountRaw, documentNumber, documentType, customerAddress, phone, plaque].every(val => val.trim() !== "");
+    const allFieldsFilled = [fullName, email, amountRaw, documentNumber, documentType, customerAddress, phone, plaque, ciudad].every(val => val.trim() !== "");
     setIsFormValid(allFieldsFilled);
-  }, [fullName, email, amountRaw, documentNumber, documentType, customerAddress, phone, plaque]);
+  }, [fullName, email, amountRaw, documentNumber, documentType, customerAddress, phone, plaque, ciudad]);
 
 
 
@@ -75,7 +78,7 @@ export default function PaymentLinkGenerator({ linkImage }: PaymentLinkGenerator
     const payloadBase = {
       billingDocument: documentNumber,
       billingDocumentType: documentType,
-      cancelCallbackUrl: "http://url:8080/ws/launcher/response-fromgateway?status=CANCEL",
+      cancelCallbackUrl: "https://www.supergiros.co/soat-online/",
       client: "supergiros",
       countryIsoCode: "COL",
       currency: "170",
@@ -84,7 +87,7 @@ export default function PaymentLinkGenerator({ linkImage }: PaymentLinkGenerator
       customerName: fullName,
       customerPhone: phone,
       enableNiubizSetting: "false",
-      errorCallbackUrl: "http://url:8080/ws/launcher/response-fromgateway?status=ERROR",
+      errorCallbackUrl: "https://www.supergiros.co/soat-online/",
       origin: "https://sbx.superpay.com.co/ws/launcher/payment-form",
       paymentShippingAddress: "prueba 8c",
       taxAmount: 0.0,
@@ -96,20 +99,48 @@ export default function PaymentLinkGenerator({ linkImage }: PaymentLinkGenerator
       branchName: "BRANCH_ACH",
       maxInstallmentCount: 1,
       paymentRequiresLogin: "true",
-      rejectCallbackUrl: "http://url:8080/ws/launcher/response-fromgateway?status=REJECT",
-      successCallbackUrl: "http://url:8080/ws/launcher/response-fromgateway?status=SUCCESS",
+      rejectCallbackUrl: "https://www.supergiros.co/soat-online/",
+      successCallbackUrl: "https://www.supergiros.co/soat-online/",
       invoiceNumber: `test-${Math.floor(Math.random() * 10000)}`,
       startsAt: now.toISOString(),
       expiresAt: expires.toISOString(),
-      billingCity: "BOGOTA",
+      billingCity: ciudad,
       billingCountryIsoCode: "170",
       extraData1: plaque,
       extraData2: "dato extra 2",
       extraData3: "dato extra 3"
     }
 
-    const postUrl = "https://dev.superpay.com.co/api/payments/payment-links"
-    const apiToken = `Bearer ${process.env.NEXT_PUBLIC_SUPERPAY_TOKEN}`
+    const loginUrl = "https://sbx.superpay.com.co/api/router-bck/api/router-bck/merchants/login/bluelink"
+    const basicToken = process.env.NEXT_PUBLIC_SUPERPAY_BASIC_TOKEN // Este es el token Basic codificado en base64
+
+    let accessToken = null
+
+    // 🔐 Paso 1: Obtener accessToken
+    try {
+      const loginRes = await fetch(loginUrl, {
+        method: "POST",
+        headers: {
+          "Authorization": `Basic ${basicToken}`
+        }
+      })
+
+      const loginData = await loginRes.json()
+
+      if (!loginRes.ok || !loginData.accessToken) {
+        throw new Error("No se pudo obtener accessToken")
+      }
+
+      accessToken = loginData.accessToken
+    } catch (error) {
+      console.error("Error al autenticar con SuperPay:", error)
+      alert("Error de autenticación. Intenta nuevamente.")
+      setLoading(false)
+      return
+    }
+
+    // 🔁 Paso 2: Intentar generar enlace
+    const postUrl = "https://sbx.superpay.com.co/api/payments/payment-links"
     let attempt = 0
     let maxAttempts = 5
     let finalResponse = null
@@ -123,7 +154,8 @@ export default function PaymentLinkGenerator({ linkImage }: PaymentLinkGenerator
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "x-api-token": apiToken
+            "Authorization": `Bearer ${accessToken}`, // 🔑 Token dinámico
+            "x-api-token": `Bearer ${process.env.NEXT_PUBLIC_SUPERPAY_TOKEN}` // Token estático de app
           },
           body: JSON.stringify(payload)
         })
@@ -143,7 +175,9 @@ export default function PaymentLinkGenerator({ linkImage }: PaymentLinkGenerator
             cusId: data.externalId,
             expirationDate: expires.toLocaleString(),
             paymentMethod: "PSE",
-            plaque: data.extraData1
+            plaque: data.extraData1,
+            ciudad: data.billingCity,
+            direccion: data.customerAddress
           }
           break
         } else if (
@@ -168,7 +202,8 @@ export default function PaymentLinkGenerator({ linkImage }: PaymentLinkGenerator
     }
 
     setLoading(false)
-  };
+  }
+
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -503,6 +538,21 @@ export default function PaymentLinkGenerator({ linkImage }: PaymentLinkGenerator
               />
             </div>
 
+
+            <div className="space-y-2 animate-slide-up" style={{ animationDelay: "0.4s" }}>
+              <Label htmlFor="ciudad" className="text-sm font-medium">
+                Ciudad cliente
+              </Label>
+              <Input
+                id="ciudad"
+                placeholder="Ingrese la ciudad..."
+                value={ciudad}
+                onChange={(e) => setCiudad(e.target.value)}
+                required
+                className="border-gray-300 focus:border-primary focus:ring-primary transition-all duration-300"
+              />
+            </div>
+
             <div className="space-y-2 animate-slide-up" style={{ animationDelay: "0.4s" }}>
               <Label htmlFor="plaque" className="text-sm font-medium">
                 Placa vehiculo cliente
@@ -631,9 +681,21 @@ export default function PaymentLinkGenerator({ linkImage }: PaymentLinkGenerator
                   <div className="mt-1 p-3 bg-blue-50 border border-blue-100 rounded-md">{response.paymentMethod}</div>
                 </div>
 
+
                 <div className="animate-slide-up" style={{ animationDelay: "0.6s" }}>
                   <span className="font-medium text-gray-700">Placa:</span>
                   <div className="mt-1 p-3 bg-blue-50 border border-blue-100 rounded-md">{response.plaque}</div>
+                </div>
+
+
+                <div className="animate-slide-up" style={{ animationDelay: "0.6s" }}>
+                  <span className="font-medium text-gray-700">Direccion:</span>
+                  <div className="mt-1 p-3 bg-blue-50 border border-blue-100 rounded-md">{response.direccion}</div>
+                </div>
+
+                <div className="animate-slide-up" style={{ animationDelay: "0.6s" }}>
+                  <span className="font-medium text-gray-700">Ciudad:</span>
+                  <div className="mt-1 p-3 bg-blue-50 border border-blue-100 rounded-md">{response.ciudad}</div>
                 </div>
 
 

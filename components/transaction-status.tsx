@@ -23,9 +23,15 @@ interface TransactionStatusResponse {
   transactionReference: string
   bankName: string
   cardLastDigits: string
+  cellphoneNumber: string      // nuevo campo agregado
+  address: string              // nuevo campo agregado
 }
 
-export default function TransactionStatus() {
+interface TransactionStatusProps {
+  linkImage: string;
+}
+
+export default function TransactionStatus({ linkImage }: TransactionStatusProps) {
   const [cusId, setCusId] = useState("")
   const [loading, setLoading] = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState(false)
@@ -33,6 +39,10 @@ export default function TransactionStatus() {
   const [error, setError] = useState("")
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isFormValid, setIsFormValid] = useState(false)
+
+  const SUPERPAY_USERNAME = process.env.SUPERPAY_USERNAME;
+  const SUPERPAY_PASSWORD = process.env.SUPERPAY_PASSWORD;
+  const SUPERPAY_TERMINAL_ID = process.env.SUPERPAY_TERMINAL_ID;
 
   // Añadir este useEffect para validar el formulario
   useEffect(() => {
@@ -43,68 +53,128 @@ export default function TransactionStatus() {
     }
   }, [cusId])
 
-  const fetchTransactionStatus = async (id: string) => {
-    try {
-      // Simulación de llamada a API
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      if (id.trim() === "") {
-        throw new Error("Por favor ingrese un CUS ID válido")
-      }
-
-      // Datos de ejemplo que retornaría la API
-      const responseData = {
-        cusId: id,
-        status: Math.random() > 0.3 ? "Completado" : "Pendiente",
-        amount: `S/ ${(Math.random() * 1000).toFixed(2)}`,
-        paymentDate: new Date().toLocaleString(),
-        customerName: "Juan Carlos",
-        customerLastName: "Rodríguez Pérez",
-        customerEmail: "cliente@ejemplo.com",
-        documentNumber: "45678912",
-        paymentMethod: Math.random() > 0.5 ? "Tarjeta de crédito" : "Transferencia bancaria",
-        transactionReference: `REF-${Math.floor(Math.random() * 1000000)}`,
-        bankName: "Banco Nacional",
-        cardLastDigits: Math.random() > 0.5 ? "4567" : "1234",
-      }
-
-      return responseData
-    } catch (error) {
-      throw error
+  const fetchTransactionStatus = async (externalId: string): Promise<TransactionStatusResponse> => {
+    if (!externalId.trim()) {
+      throw new Error("Por favor ingrese un CUS ID válido");
     }
-  }
+
+    const loginUrl = "https://sbx.superpay.com.co/api/router-bck/terminals/login";
+    const inquiryUrl = "https://sbx.superpay.com.co/api/router-bck/transactions/transaction-by-external-id";
+
+    const credentials = {
+      userName: process.env.NEXT_PUBLIC_SUPERPAY_USER,
+      password: process.env.NEXT_PUBLIC_SUPERPAY_PASS,
+      terminalId: process.env.NEXT_PUBLIC_SUPERPAY_TERMINAL_ID,
+    };
+
+    try {
+      // Paso 1: LOGIN
+      const loginResponse = await fetch(loginUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(credentials),
+      });
+
+      if (!loginResponse.ok) {
+        throw new Error("Error en el login con SuperPay:");
+      }
+
+      const loginData = await loginResponse.json();
+      const apiToken = loginData.apiToken;
+
+      if (!apiToken) {
+        throw new Error("Token de autenticación no recibido");
+      }
+
+      // Paso 2: Consultar transacción
+      const trxBody = {
+        originalExternalId: externalId,
+        apiToken,
+        terminalId: credentials.terminalId,
+      };
+
+      const trxResponse = await fetch(inquiryUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(trxBody),
+      });
+
+      if (!trxResponse.ok) {
+        throw new Error("Error al consultar la transacción");
+      }
+
+      const trxData = await trxResponse.json();
+
+      // Paso 3: Procesar extraJsonData10
+      const extraData = trxData.extraJsonData10
+        ? JSON.parse(trxData.extraJsonData10)
+        : {};
+
+      // Paso 4: Traducir estado
+      const statusMap: Record<string, string> = {
+        APPROVED: "Aprobada",
+        PENDING: "Pendiente",
+        DECLINED: "Rechazada/Fallida",
+      };
+
+      const formattedData: TransactionStatusResponse = {
+        cusId: externalId,
+        status: statusMap[trxData.trxStatus] || "Desconocido",
+        amount: `S/ ${parseFloat(trxData.authAmount || "0").toFixed(2)}`,
+        paymentDate: new Date(trxData.dtResponse).toLocaleString(),
+        customerName: extraData.fullName,
+        customerLastName: "", // podrías separar aquí si quieres
+        customerEmail: extraData.email,
+        documentNumber: extraData.identificationNumber,
+        paymentMethod: trxData.paymentDescription,
+        transactionReference: trxData.externalId,
+        bankName: trxData.bankInfo,
+        cardLastDigits: trxData.extraData1,
+        cellphoneNumber: extraData.cellphoneNumber,
+        address: extraData.address,
+      };
+
+      return formattedData;
+    } catch (error: any) {
+      console.error("Error al consultar el estado de la transacción:", error);
+      throw new Error(error.message || "Ocurrió un error inesperado");
+    }
+  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
     try {
-      const responseData = await fetchTransactionStatus(cusId)
-      setResponse(responseData)
-      setIsModalOpen(true)
+      const responseData = await fetchTransactionStatus(cusId); // usa el externalId ingresado
+      setResponse(responseData); // este objeto lo usará el modal
+      setIsModalOpen(true);
     } catch (error) {
-      console.error("Error al consultar estado:", error)
-      setError(error instanceof Error ? error.message : "Error al consultar estado")
-      setResponse(null)
+      console.error("Error al consultar estado:", error);
+      setError(error instanceof Error ? error.message : "Error al consultar estado");
+      setResponse(null);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
 
   const handleUpdateStatus = async () => {
-    if (!response) return
+    if (!response) return;
 
-    setUpdatingStatus(true)
+    setUpdatingStatus(true);
     try {
-      const updatedData = await fetchTransactionStatus(response.cusId)
-      setResponse(updatedData)
+      const updatedData = await fetchTransactionStatus(response.cusId); // reutiliza el ID actual
+      setResponse(updatedData);
     } catch (error) {
-      console.error("Error al actualizar estado:", error)
+      console.error("Error al actualizar estado:", error);
     } finally {
-      setUpdatingStatus(false)
+      setUpdatingStatus(false);
     }
-  }
+  };
+
 
   return (
     <Card className="shadow-lg border-0 gradient-border card-hover overflow-hidden relative">
@@ -136,19 +206,19 @@ export default function TransactionStatus() {
           <CardTitle className="text-2xl font-bold gradient-text">Consultar estado de transacción</CardTitle>
         </div>
         <CardDescription className="text-gray-600">
-          Ingrese el ID para verificar el estado de la transacción
+          Ingrese el External ID para verificar el estado de la transacción
         </CardDescription>
       </CardHeader>
       <CardContent className="relative z-10">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2 animate-slide-up">
             <Label htmlFor="cusId" className="text-sm font-medium">
-              ID
+              External ID
             </Label>
             <div className="relative">
               <Input
                 id="cusId"
-                placeholder="Ingrese el ID"
+                placeholder="Ingrese el External ID"
                 value={cusId}
                 onChange={(e) => setCusId(e.target.value)}
                 required
@@ -162,9 +232,8 @@ export default function TransactionStatus() {
 
           <Button
             type="submit"
-            className={`w-full mt-6 transition-all duration-300 relative overflow-hidden ${
-              isFormValid ? "text-white shadow-lg" : "text-gray-400 bg-gray-100"
-            }`}
+            className={`w-full mt-6 transition-all duration-300 relative overflow-hidden ${isFormValid ? "text-white shadow-lg" : "text-gray-400 bg-gray-100"
+              }`}
             disabled={loading || !isFormValid}
           >
             <span className="relative z-10">
@@ -196,6 +265,7 @@ export default function TransactionStatus() {
             data={response}
             onUpdate={handleUpdateStatus}
             isUpdating={updatingStatus}
+            linkImage={`${linkImage}`}
           />
         )}
       </CardContent>

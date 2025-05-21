@@ -19,6 +19,8 @@ interface TransactionStatusResponse {
   transactionReference: string
   bankName: string
   cardLastDigits: string
+  cellphoneNumber: string
+  address: string
 }
 
 interface TransactionModalProps {
@@ -27,10 +29,33 @@ interface TransactionModalProps {
   data: TransactionStatusResponse
   onUpdate: () => void
   isUpdating: boolean
+  linkImage: string;
 }
 
-export default function TransactionModal({ isOpen, onClose, data, onUpdate, isUpdating }: TransactionModalProps) {
+
+
+export default function TransactionModal({ isOpen, onClose, data, onUpdate, isUpdating, linkImage }: TransactionModalProps) {
   const [mounted, setMounted] = React.useState(false)
+
+  const formatCurrency = (value: unknown): string => {
+    if (typeof value === "string") {
+      // Limpiar espacios, signos de moneda, comas innecesarias, etc.
+      value = value.replace(/[^\d.-]/g, "");
+    }
+
+    const numericValue = Number(value);
+
+    if (isNaN(numericValue)) return "0,00";
+
+    return new Intl.NumberFormat("es-PE", {
+      style: "decimal",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(numericValue);
+  };
+
+
+
 
   React.useEffect(() => {
     setMounted(true)
@@ -69,7 +94,7 @@ export default function TransactionModal({ isOpen, onClose, data, onUpdate, isUp
 
           {/* Logo de Bluelink BPO en el modal */}
           <div className="absolute top-6 right-12 opacity-60">
-            <Image src="/images/bluelink_bpo_logo.png" alt="Bluelink BPO" width={80} height={30} className="h-auto" />
+            <Image src={linkImage} alt="Bluelink BPO" width={80} height={30} className="h-auto" />
           </div>
 
           {/* Contenido del modal */}
@@ -98,9 +123,12 @@ export default function TransactionModal({ isOpen, onClose, data, onUpdate, isUp
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold text-gray-800">Detalles de la transacción</h3>
                 <div
-                  className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    data.status === "Completado" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
-                  }`}
+                  className={`px-3 py-1 rounded-full text-sm font-medium ${data.status === "Aprobada"
+                    ? "bg-green-100 text-green-800"
+                    : data.status === "Pendiente"
+                      ? "bg-yellow-100 text-yellow-800"
+                      : "bg-red-100 text-red-800"
+                    }`}
                 >
                   {data.status}
                 </div>
@@ -108,7 +136,7 @@ export default function TransactionModal({ isOpen, onClose, data, onUpdate, isUp
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <div className="text-sm text-gray-500 mb-1">CUS ID</div>
+                  <div className="text-sm text-gray-500 mb-1">EXTERNAL ID</div>
                   <div className="p-3 bg-white border border-gray-100 rounded-md font-mono text-primary">
                     {data.cusId}
                   </div>
@@ -117,7 +145,7 @@ export default function TransactionModal({ isOpen, onClose, data, onUpdate, isUp
                 <div>
                   <div className="text-sm text-gray-500 mb-1">Monto</div>
                   <div className="p-3 bg-white border border-gray-100 rounded-md font-bold text-gray-800">
-                    {data.amount}
+                    {formatCurrency(data.amount)}
                   </div>
                 </div>
 
@@ -126,10 +154,11 @@ export default function TransactionModal({ isOpen, onClose, data, onUpdate, isUp
                   <div className="p-3 bg-white border border-gray-100 rounded-md">{data.customerName}</div>
                 </div>
 
-                <div>
-                  <div className="text-sm text-gray-500 mb-1">Apellidos</div>
-                  <div className="p-3 bg-white border border-gray-100 rounded-md">{data.customerLastName}</div>
-                </div>
+                {/* Si no usas customerLastName, puedes comentarlo o quitarlo */}
+                {/* <div>
+  <div className="text-sm text-gray-500 mb-1">Apellidos</div>
+  <div className="p-3 bg-white border border-gray-100 rounded-md">{data.customerLastName}</div>
+</div> */}
 
                 <div>
                   <div className="text-sm text-gray-500 mb-1">Correo electrónico</div>
@@ -139,6 +168,16 @@ export default function TransactionModal({ isOpen, onClose, data, onUpdate, isUp
                 <div>
                   <div className="text-sm text-gray-500 mb-1">Documento</div>
                   <div className="p-3 bg-white border border-gray-100 rounded-md">{data.documentNumber}</div>
+                </div>
+
+                <div>
+                  <div className="text-sm text-gray-500 mb-1">Celular</div>
+                  <div className="p-3 bg-white border border-gray-100 rounded-md">{data.cellphoneNumber}</div>
+                </div>
+
+                <div>
+                  <div className="text-sm text-gray-500 mb-1">Dirección</div>
+                  <div className="p-3 bg-white border border-gray-100 rounded-md">{data.address}</div>
                 </div>
 
                 <div>
@@ -171,6 +210,7 @@ export default function TransactionModal({ isOpen, onClose, data, onUpdate, isUp
                     </div>
                   </div>
                 )}
+
               </div>
 
               <div className="mt-6 flex justify-end space-x-3">

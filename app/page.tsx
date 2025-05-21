@@ -24,7 +24,7 @@ export default function Home() {
           <PaymentLinkGenerator linkImage={`${publicRuntimeConfig.basePath}/images/bluelink_bpo_logo.png`} />
           </div>
           <div className="animate-slide-up" style={{ animationDelay: "0.2s" }}>
-           {/*<TransactionStatus />*/}
+           <TransactionStatus linkImage={`${publicRuntimeConfig.basePath}/images/bluelink_bpo_logo.png`}/>
           </div>
         </div>
 
