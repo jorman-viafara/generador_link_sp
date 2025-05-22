@@ -11,6 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2, Copy, CheckCircle2 } from "lucide-react"
 import Image from "next/image"
 import Swal from 'sweetalert2';
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import ReactDOMServer from 'react-dom/server';
 
 import { format } from 'date-fns'
@@ -59,6 +67,9 @@ export default function PaymentLinkGenerator({ linkImage }: PaymentLinkGenerator
   const [amountFormatted, setAmountFormatted] = useState("")
   const [amountRaw, setAmountRaw] = useState("")
   const [isFocused, setIsFocused] = useState(false)
+
+  const [pastedData, setPastedData] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
 
   // Añadir este useEffect para validar el formulario
   useEffect(() => {
@@ -154,8 +165,7 @@ export default function PaymentLinkGenerator({ linkImage }: PaymentLinkGenerator
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${accessToken}`, // 🔑 Token dinámico
-            "x-api-token": `Bearer ${process.env.NEXT_PUBLIC_SUPERPAY_TOKEN}` // Token estático de app
+            "x-api-token": `Bearer ${accessToken}` // 🔑 Token dinámico
           },
           body: JSON.stringify(payload)
         })
@@ -389,6 +399,42 @@ export default function PaymentLinkGenerator({ linkImage }: PaymentLinkGenerator
 
 
 
+  const parseAndFillData = () => {
+    console.log("📋 Datos pegados:", pastedData);
+
+    const lines = pastedData.split("\n");
+    const dataMap: Record<string, string> = {};
+
+    lines.forEach((line) => {
+      // Elimina guiones, bullets y espacios iniciales
+      const cleanLine = line.replace(/^[-–•]\s*/, "").trim();
+      if (!cleanLine.includes(":")) return;
+
+      const [rawKey, ...rawValue] = cleanLine.split(":");
+      const key = rawKey.trim().toLowerCase();
+      const value = rawValue.join(":").replace(/\*/g, "").trim(); // elimina los * y espacios
+
+      dataMap[key] = value;
+    });
+
+    console.log("🧩 Mapeo final:", dataMap);
+
+    setPlaque(dataMap["placa"] || "");
+    setFullName(dataMap["nombre propietario"] || "");
+    setDocumentType(dataMap["tipo documento"] || "");
+    setDocumentNumber(dataMap["numero documento"] || "");
+    setPhone(dataMap["celular"] || "");
+    setEmail(dataMap["correo"] || "");
+    setCustomerAddress(dataMap["direccion"] || "");
+    setCiudad(dataMap["ciudad"] || ""); // 👈 añade ciudad si no lo tenías antes
+  };
+
+
+
+
+
+
+
   return (
     <Card className="shadow-lg border-0 gradient-border card-hover overflow-hidden relative">
       <div className="absolute inset-0 bg-white/90 backdrop-blur-sm rounded-lg z-0"></div>
@@ -424,6 +470,54 @@ export default function PaymentLinkGenerator({ linkImage }: PaymentLinkGenerator
         <CardDescription className="text-gray-600">
           Complete los datos para generar un enlace de pago seguro
         </CardDescription>
+
+
+
+        {/* Botón para abrir modal */}
+        <div className="flex justify-end">
+          <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+            <DialogTrigger asChild>
+              <Button
+                type="button"
+                className="w-full mt-6 transition-all duration-300 relative overflow-hidden text-white shadow-lg"
+              >
+                <span className="relative z-10">Pegar datos</span>
+                <span className="absolute inset-0 rgb-button-vibrant"></span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Pegar datos del cliente</DialogTitle>
+              </DialogHeader>
+              <textarea
+                value={pastedData}
+                onChange={(e) => setPastedData(e.target.value)}
+                rows={10}
+                placeholder={`Ejemplo:\n- Placa: JDE97G\n- Nombre propietario: Jorman viafara\n- Tipo documento: CC\n- Numero documento: 1111479273\n- Celular: 3225697799\n- Correo: JS@GMAIL.COM\n- Direccion: calle 10`}
+                className="w-full p-2 border rounded-md"
+              />
+              <DialogFooter className="mt-4 flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setModalOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    parseAndFillData();
+                    setModalOpen(false);
+                  }}
+                >
+                  Aplicar datos
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+
       </CardHeader>
       <CardContent className="relative z-10">
         <form onSubmit={handleConfirmation} className="space-y-4">

@@ -193,6 +193,11 @@ export default function TransactionModal({ isOpen, onClose, data, onUpdate, isUp
 
                 <div>
                   <div className="text-sm text-gray-500 mb-1">Método de pago</div>
+                  <div className="p-3 bg-white border border-gray-100 rounded-md">PSE</div>
+                </div>
+
+                <div>
+                  <div className="text-sm text-gray-500 mb-1">Descripcion</div>
                   <div className="p-3 bg-white border border-gray-100 rounded-md">{data.paymentMethod}</div>
                 </div>
 
