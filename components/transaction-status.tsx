@@ -133,7 +133,7 @@ export default function TransactionStatus({ linkImage }: TransactionStatusProps)
         cardLastDigits: trxData.extraData1,
         cellphoneNumber: extraData.cellphoneNumber,
         address: extraData.address,
-        placa: extraData.extraData1
+        placa: trxData.extraData1
       };
 
       return formattedData;

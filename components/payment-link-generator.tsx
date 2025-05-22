@@ -100,14 +100,15 @@ export default function PaymentLinkGenerator({ linkImage }: PaymentLinkGenerator
       enableNiubizSetting: "false",
       errorCallbackUrl: "https://www.supergiros.co/soat-online/",
       origin: "https://sbx.superpay.com.co/ws/launcher/payment-form",
-      paymentShippingAddress: "prueba 8c",
+      paymentShippingAddress: customerAddress,
       taxAmount: 0.0,
       extraTaxAmount: 0.0,
       mode: "redirect",
       method: "pse",
       terminalId: "26626",
       totalAmount: parseFloat(amountRaw),
-      branchName: "BRANCH_ACH",
+      branchName: "BLUELINK",
+      sub_merchant_identification: "LAFER-1",
       maxInstallmentCount: 1,
       paymentRequiresLogin: "true",
       rejectCallbackUrl: "https://www.supergiros.co/soat-online/",
@@ -118,8 +119,8 @@ export default function PaymentLinkGenerator({ linkImage }: PaymentLinkGenerator
       billingCity: ciudad,
       billingCountryIsoCode: "170",
       extraData1: plaque,
-      extraData2: "dato extra 2",
-      extraData3: "dato extra 3"
+      extraData2: "LAFER-1",
+      extraData3: ""
     }
 
     const loginUrl = "https://sbx.superpay.com.co/api/router-bck/api/router-bck/merchants/login/bluelink"
