@@ -90,7 +90,7 @@ export default function PaymentLinkGenerator({ linkImage }: PaymentLinkGenerator
       billingDocument: documentNumber,
       billingDocumentType: documentType,
       cancelCallbackUrl: "https://www.supergiros.co/soat-online/",
-      client: "supergiros",
+      client: "supergiros",  // se debe cambiar
       countryIsoCode: "COL",
       currency: "170",
       customerAddress: customerAddress,
@@ -107,7 +107,7 @@ export default function PaymentLinkGenerator({ linkImage }: PaymentLinkGenerator
       method: "pse",
       terminalId: "26626",
       totalAmount: parseFloat(amountRaw),
-      branchName: "BLUELINK",
+      branchName: "BRANCH_ACH", // se debe cambiar
       sub_merchant_identification: "LAFER-1",
       maxInstallmentCount: 1,
       paymentRequiresLogin: "true",
