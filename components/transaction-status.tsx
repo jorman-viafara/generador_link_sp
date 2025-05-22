@@ -24,7 +24,8 @@ interface TransactionStatusResponse {
   bankName: string
   cardLastDigits: string
   cellphoneNumber: string      // nuevo campo agregado
-  address: string              // nuevo campo agregado
+  address: string
+  placa: string              // nuevo campo agregado
 }
 
 interface TransactionStatusProps {
@@ -132,6 +133,7 @@ export default function TransactionStatus({ linkImage }: TransactionStatusProps)
         cardLastDigits: trxData.extraData1,
         cellphoneNumber: extraData.cellphoneNumber,
         address: extraData.address,
+        placa: extraData.extraData1
       };
 
       return formattedData;

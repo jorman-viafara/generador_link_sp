@@ -21,6 +21,7 @@ interface TransactionStatusResponse {
   cardLastDigits: string
   cellphoneNumber: string
   address: string
+  placa: string
 }
 
 interface TransactionModalProps {
@@ -202,9 +203,9 @@ export default function TransactionModal({ isOpen, onClose, data, onUpdate, isUp
                 </div>
 
                 <div>
-                  <div className="text-sm text-gray-500 mb-1">Referencia</div>
+                  <div className="text-sm text-gray-500 mb-1">Placa</div>
                   <div className="p-3 bg-white border border-gray-100 rounded-md font-mono text-xs">
-                    {data.transactionReference}
+                    {data.placa}
                   </div>
                 </div>
 
