@@ -113,7 +113,7 @@ export default function PaymentLinkGenerator({ linkImage }: PaymentLinkGenerator
       paymentRequiresLogin: "true",
       rejectCallbackUrl: "https://www.supergiros.co/soat-online/",
       successCallbackUrl: "https://www.supergiros.co/soat-online/",
-      invoiceNumber: `test-${Math.floor(Math.random() * 10000)}`,
+      invoiceNumber: `test-${Math.floor(Math.random() * 10000)}`,  // se debe cambiar
       startsAt: now.toISOString(),
       expiresAt: expires.toISOString(),
       billingCity: ciudad,
