@@ -56,92 +56,23 @@ export default function TransactionStatus({ linkImage }: TransactionStatusProps)
 
   const fetchTransactionStatus = async (externalId: string): Promise<TransactionStatusResponse> => {
     if (!externalId.trim()) {
-      throw new Error("Por favor ingrese un CUS ID válido");
+      throw new Error("Por favor ingrese un CUS ID válido")
     }
 
-    const loginUrl = "https://sbx.superpay.com.co/api/router-bck/terminals/login";
-    const inquiryUrl = "https://sbx.superpay.com.co/api/router-bck/transactions/transaction-by-external-id";
+    const response = await fetch('http://localhost:4000/api/consultar-transaccion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ externalId }),
+    })
 
-    const credentials = {
-      userName: process.env.NEXT_PUBLIC_SUPERPAY_USER,
-      password: process.env.NEXT_PUBLIC_SUPERPAY_PASS,
-      terminalId: process.env.NEXT_PUBLIC_SUPERPAY_TERMINAL_ID,
-    };
+    const data = await response.json()
 
-    try {
-      // Paso 1: LOGIN
-      const loginResponse = await fetch(loginUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(credentials),
-      });
-
-      if (!loginResponse.ok) {
-        throw new Error("Error en el login con SuperPay:");
-      }
-
-      const loginData = await loginResponse.json();
-      const apiToken = loginData.apiToken;
-
-      if (!apiToken) {
-        throw new Error("Token de autenticación no recibido");
-      }
-
-      // Paso 2: Consultar transacción
-      const trxBody = {
-        originalExternalId: externalId,
-        apiToken,
-        terminalId: credentials.terminalId,
-      };
-
-      const trxResponse = await fetch(inquiryUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(trxBody),
-      });
-
-      if (!trxResponse.ok) {
-        throw new Error("Error al consultar la transacción");
-      }
-
-      const trxData = await trxResponse.json();
-
-      // Paso 3: Procesar extraJsonData10
-      const extraData = trxData.extraJsonData10
-        ? JSON.parse(trxData.extraJsonData10)
-        : {};
-
-      // Paso 4: Traducir estado
-      const statusMap: Record<string, string> = {
-        APPROVED: "Aprobada",
-        PENDING: "Pendiente",
-        DECLINED: "Rechazada/Fallida",
-      };
-
-      const formattedData: TransactionStatusResponse = {
-        cusId: externalId,
-        status: statusMap[trxData.trxStatus],
-        amount: `S/ ${parseFloat(trxData.authAmount || "0").toFixed(2)}`,
-        paymentDate: trxData.dtRequest,
-        customerName: extraData.fullName,
-        customerLastName: "", // podrías separar aquí si quieres
-        customerEmail: extraData.email,
-        documentNumber: extraData.identificationNumber,
-        paymentMethod: trxData.paymentDescription,
-        transactionReference: trxData.externalId,
-        bankName: trxData.bankInfo,
-        cardLastDigits: trxData.extraData1,
-        cellphoneNumber: extraData.cellphoneNumber,
-        address: extraData.address,
-        placa: trxData.extraData1
-      };
-
-      return formattedData;
-    } catch (error: any) {
-      console.error("Error al consultar el estado de la transacción:", error);
-      throw new Error(error.message || "Ocurrió un error inesperado");
+    if (!response.ok) {
+      throw new Error(data.error || "Error al consultar la transacción")
     }
-  };
+
+    return data as TransactionStatusResponse
+  }
 
 
   const handleSubmit = async (e: React.FormEvent) => {

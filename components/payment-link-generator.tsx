@@ -82,38 +82,38 @@ export default function PaymentLinkGenerator({ linkImage }: PaymentLinkGenerator
   const generateLink = async () => {
     setLoading(true)
 
-    const generateExternalId = () => `00026626-${Math.floor(100000000 + Math.random() * 900000000)}`
+    const generateExternalId = () => `00000012-${Math.floor(100000000 + Math.random() * 900000000)}`
     const now = new Date()
-    const expires = new Date(now.getTime() + 2 * 60 * 60 * 1000) // +2 horas
+    const expires = new Date(now.getTime() + 2 * 60 * 60 * 1000)
 
-    const payloadBase = {
+    const payload = {
       billingDocument: documentNumber,
       billingDocumentType: documentType,
       cancelCallbackUrl: "https://www.supergiros.co/soat-online/",
-      client: "supergiros",  // se debe cambiar
+      client: "BlueLink BPO",
       countryIsoCode: "COL",
       currency: "170",
-      customerAddress: customerAddress,
+      customerAddress,
       customerEmail: email,
       customerName: fullName,
       customerPhone: phone,
       enableNiubizSetting: "false",
       errorCallbackUrl: "https://www.supergiros.co/soat-online/",
-      origin: "https://sbx.superpay.com.co/ws/launcher/payment-form",
+      origin: "https://prod-nop.superpay.com.co/ws/launcher/payment-form",
       paymentShippingAddress: customerAddress,
       taxAmount: 0.0,
       extraTaxAmount: 0.0,
       mode: "redirect",
       method: "pse",
-      terminalId: "26626",
+      terminalId: "12",
       totalAmount: parseFloat(amountRaw),
-      branchName: "BRANCH_ACH", // se debe cambiar
+      branchName: "BlueLink BPO",
       sub_merchant_identification: "LAFER-1",
       maxInstallmentCount: 1,
       paymentRequiresLogin: "true",
       rejectCallbackUrl: "https://www.supergiros.co/soat-online/",
       successCallbackUrl: "https://www.supergiros.co/soat-online/",
-      invoiceNumber: `test-${Math.floor(Math.random() * 10000)}`,  // se debe cambiar
+      invoiceNumber: "",
       startsAt: now.toISOString(),
       expiresAt: expires.toISOString(),
       billingCity: ciudad,
@@ -123,97 +123,43 @@ export default function PaymentLinkGenerator({ linkImage }: PaymentLinkGenerator
       extraData3: ""
     }
 
-    const loginUrl = "https://sbx.superpay.com.co/api/router-bck/api/router-bck/merchants/login/bluelink"
-    const basicToken = process.env.NEXT_PUBLIC_SUPERPAY_BASIC_TOKEN // Este es el token Basic codificado en base64
-
-    let accessToken = null
-
-    // 🔐 Paso 1: Obtener accessToken
     try {
-      const loginRes = await fetch(loginUrl, {
+      const res = await fetch("http://localhost:4000/api/generate-link", {
         method: "POST",
-        headers: {
-          "Authorization": `Basic ${basicToken}`
-        }
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
       })
 
-      const loginData = await loginRes.json()
+      const data = await res.json()
 
-      if (!loginRes.ok || !loginData.accessToken) {
-        throw new Error("No se pudo obtener accessToken")
-      }
-
-      accessToken = loginData.accessToken
-    } catch (error) {
-      console.error("Error al autenticar con SuperPay:", error)
-      alert("Error de autenticación. Intenta nuevamente.")
-      setLoading(false)
-      return
-    }
-
-    // 🔁 Paso 2: Intentar generar enlace
-    const postUrl = "https://sbx.superpay.com.co/api/payments/payment-links"
-    let attempt = 0
-    let maxAttempts = 5
-    let finalResponse = null
-
-    while (attempt < maxAttempts) {
-      const externalId = generateExternalId()
-      const payload = { ...payloadBase, externalId }
-
-      try {
-        const res = await fetch(postUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-token": `Bearer ${accessToken}` // 🔑 Token dinámico
-          },
-          body: JSON.stringify(payload)
+      if (res.ok) {
+        setResponse({
+          email,
+          fullName,
+          amount: `$ ${data.totalAmount}`,
+          documentNumber,
+          terminalId: data.terminalId,
+          status: data.status,
+          date: new Date().toLocaleString(),
+          link: data.link,
+          cusId: data.externalId,
+          expirationDate: expires.toLocaleString(),
+          paymentMethod: "PSE",
+          plaque: data.extraData1,
+          ciudad: data.billingCity,
+          direccion: data.customerAddress
         })
-
-        const data = await res.json()
-
-        if (res.ok) {
-          finalResponse = {
-            email: email,
-            fullName: fullName,
-            amount: `$ ${data.totalAmount}`,
-            documentNumber: documentNumber,
-            terminalId: data.terminalId,
-            status: data.status,
-            date: new Date().toLocaleString(),
-            link: data.link,
-            cusId: data.externalId,
-            expirationDate: expires.toLocaleString(),
-            paymentMethod: "PSE",
-            plaque: data.extraData1,
-            ciudad: data.billingCity,
-            direccion: data.customerAddress
-          }
-          break
-        } else if (
-          data.code === "PAYMENTS_ERROR_000" &&
-          data.message?.includes("external id already exists")
-        ) {
-          attempt++
-          continue
-        } else {
-          throw new Error(data.message || "Error desconocido")
-        }
-      } catch (error) {
-        console.error("Error al generar enlace de pago:", error)
-        break
+      } else {
+        alert(data.error || "No se pudo generar el enlace de pago.")
       }
-    }
-
-    if (finalResponse) {
-      setResponse(finalResponse)
-    } else {
-      alert("No se pudo generar el enlace de pago. Inténtalo de nuevo.")
+    } catch (error) {
+      console.error("Error en frontend:", error)
+      alert("Error inesperado. Inténtalo de nuevo.")
     }
 
     setLoading(false)
   }
+
 
 
 
