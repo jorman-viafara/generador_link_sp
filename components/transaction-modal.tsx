@@ -94,13 +94,22 @@ export default function TransactionModal({ isOpen, onClose, data, onUpdate, isUp
           </button>
 
           {/* Logo de Bluelink BPO en el modal */}
-          <div className="absolute top-6 right-12 opacity-60">
-            <Image src={linkImage} alt="Bluelink BPO" width={80} height={30} className="h-auto" />
+          <div className="flex justify-center items-center gap-x-4 mb-4">
+            <Image src={`${linkImage}/images/bluelink_bpo_logo.png`} alt="Bluelink BPO" width={80} height={30} className="h-auto mb-4" /> 
+
+            
+            <Image
+              src={`${linkImage}/images/superpay.png`}
+              alt="Superpay"
+              width={30}
+              height={30}
+              className="h-auto mb-4"
+            />
           </div>
 
           {/* Contenido del modal */}
           <div>
-            <div className="mb-4">
+            <div className="flex justify-center items-center gap-x-4 mb-4">
               <h2 className="text-2xl font-bold gradient-text flex items-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

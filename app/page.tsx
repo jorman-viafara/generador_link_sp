@@ -11,20 +11,36 @@ export default function Home() {
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Logo y título */}
         <div className="text-center animate-fade-in">
-          <div className="flex justify-center mb-4">
-            <Image src={`${publicRuntimeConfig.basePath}/images/bluelink_bpo_logo.png`} alt="Bluelink BPO" width={220} height={80} className="h-auto" />
+          <div className="flex justify-center items-center gap-x-4 mb-4">
+            <Image
+              src={`${publicRuntimeConfig.basePath}/images/bluelink_bpo_logo.png`}
+              alt="Bluelink BPO"
+              width={220}
+              height={80}
+              className="h-auto"
+            />
+            <span className="text-3xl font-semibold text-gray-500">×</span>
+            <Image
+              src={`${publicRuntimeConfig.basePath}/images/superpay.png`}
+              alt="Superpay"
+              width={60}
+              height={80}
+              className="h-auto"
+            />
           </div>
+
           <p className="text-gray-600 max-w-2xl mx-auto">
             Genera enlaces de pago SuperPay y consulta el estado de las transacciones de forma rápida y segura
           </p>
         </div>
 
         <div className="grid gap-8 md:grid-cols-1">
+
           <div className="animate-slide-up">
-          <PaymentLinkGenerator linkImage={`${publicRuntimeConfig.basePath}/images/bluelink_bpo_logo.png`} />
+            <PaymentLinkGenerator linkImage={`${publicRuntimeConfig.basePath}/images/bluelink_bpo_logo.png`} />
           </div>
           <div className="animate-slide-up" style={{ animationDelay: "0.2s" }}>
-           <TransactionStatus linkImage={`${publicRuntimeConfig.basePath}/images/bluelink_bpo_logo.png`}/>
+            <TransactionStatus linkImage={`${publicRuntimeConfig.basePath}`} />
           </div>
         </div>
 
