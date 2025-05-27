@@ -124,7 +124,7 @@ export default function PaymentLinkGenerator({ linkImage }: PaymentLinkGenerator
     }
 
     try {
-      const res = await fetch("http://localhost:4000/api/generate-link", {
+      const res = await fetch("http://10.99.0.5:4000/api/generate-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
