@@ -123,7 +123,12 @@ export async function fetchTransactionStatus(externalId) {
     })
 
     if (!trxResponse.ok) {
-      throw new Error("Error al consultar la transacción")
+      if (trxResponse.message == "Transaction not found") {
+        throw new Error("La transacción que intentas consultar no existe'")
+      } else {
+        throw new Error("Error al consultar la transacción")
+      }
+
     }
 
     const trxData = await trxResponse.json()
@@ -135,6 +140,7 @@ export async function fetchTransactionStatus(externalId) {
       APPROVED: "Aprobada",
       PENDING: "Pendiente",
       DECLINED: "Rechazada/Fallida",
+      ERROR: "Rechazada/Fallida",
     }
 
     return {
