@@ -59,7 +59,7 @@ export default function TransactionStatus({ linkImage }: TransactionStatusProps)
       throw new Error("Por favor ingrese un CUS ID válido")
     }
 
-    const response = await fetch('http://10.99.0.5:4000/api/consultar-transaccion', {
+    const response = await fetch('https://bluelink.local/api-generador-link/api/consultar-transaccion', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ externalId }),
