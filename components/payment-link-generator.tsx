@@ -159,7 +159,7 @@ export default function PaymentLinkGenerator({ linkImage }: PaymentLinkGenerator
 
     setLoading(false)
   }
-  
+
 
 
 
@@ -347,35 +347,62 @@ export default function PaymentLinkGenerator({ linkImage }: PaymentLinkGenerator
 
 
 
+  
   const parseAndFillData = () => {
     console.log("📋 Datos pegados:", pastedData);
 
-    const lines = pastedData.split("\n");
+    const lines = pastedData
+      .split("\n")
+      .map(line => line.trim())
+      .filter(line => line !== "");
+
     const dataMap: Record<string, string> = {};
 
-    lines.forEach((line) => {
-      // Elimina guiones, bullets y espacios iniciales
-      const cleanLine = line.replace(/^[-–•]\s*/, "").trim();
-      if (!cleanLine.includes(":")) return;
+    // Intenta detectar si hay claves explícitas (ej: "Placa: JDE97G")
+    const hasExplicitKeys = lines.some(line => line.includes(":"));
 
-      const [rawKey, ...rawValue] = cleanLine.split(":");
-      const key = rawKey.trim().toLowerCase();
-      const value = rawValue.join(":").replace(/\*/g, "").trim(); // elimina los * y espacios
+    if (hasExplicitKeys) {
+      // 📌 Estructura tipo clave: valor
+      lines.forEach((line) => {
+        const cleanLine = line.replace(/^[-–•]\s*/, "").trim();
+        if (!cleanLine.includes(":")) return;
 
-      dataMap[key] = value;
-    });
+        const [rawKey, ...rawValue] = cleanLine.split(":");
+        const key = rawKey.trim().toLowerCase();
+        const value = rawValue.join(":").replace(/\*/g, "").trim();
 
-    console.log("🧩 Mapeo final:", dataMap);
+        dataMap[key] = value;
+      });
 
-    setPlaque(dataMap["placa"] || "");
-    setFullName(dataMap["nombre propietario"] || "");
-    setDocumentType(dataMap["tipo documento"] || "");
-    setDocumentNumber(dataMap["numero documento"] || "");
-    setPhone(dataMap["celular"] || "");
-    setEmail(dataMap["correo"] || "");
-    setCustomerAddress(dataMap["direccion"] || "");
-    setCiudad(dataMap["ciudad"] || ""); // 👈 añade ciudad si no lo tenías antes
+      setPlaque(dataMap["placa"] || "");
+      setFullName(dataMap["nombre propietario"] || "");
+      setDocumentType(dataMap["tipo documento"] || "");
+      setDocumentNumber(dataMap["numero documento"] || "");
+      setPhone(dataMap["celular"] || "");
+      setEmail(dataMap["correo"] || "");
+      setCustomerAddress(dataMap["direccion"] || "");
+      setCiudad(dataMap["ciudad"] || "");
+
+    } else {
+      // 📌 Estructura sin claves, por orden específico
+      const cleanedLines = lines.map(line => line.replace(/^[-–•]\s*/, "").trim());
+
+      if (cleanedLines.length >= 9) {
+        setFullName(cleanedLines[0] || "");
+        setEmail(cleanedLines[1] || "");
+        // cleanedLines[2] parece ser un valor que no se necesita (1296500?)
+        setDocumentType(cleanedLines[3] || "");
+        setDocumentNumber(cleanedLines[4] || "");
+        setCustomerAddress(cleanedLines[5] || "");
+        setPhone(cleanedLines[6] || "");
+        setCiudad(cleanedLines[7] || "");
+        setPlaque(cleanedLines[8] || "");
+      } else {
+        console.warn("⚠️ No se pudo determinar la estructura del contenido pegado.");
+      }
+    }
   };
+
 
 
 
